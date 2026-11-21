@@ -115,7 +115,7 @@ form.f legend{font-size:15px;font-weight:500;padding-inline:6px}
 .attbox .addl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .attbox .addl input[type=text],.attbox .addl input[type=url]{flex:1;min-width:140px;font:inherit;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 
-</style>
+@media(max-width:600px){.tools{display:grid;grid-template-columns:1fr auto}#fTent{grid-column:1;grid-row:1;justify-self:start}.count{grid-column:2;grid-row:1}#srcChips{display:flex!important;grid-column:1/-1;grid-row:2;overflow-x:auto;gap:8px;padding-bottom:6px;scrollbar-width:thin}#srcChips .chip{flex:none;white-space:nowrap}}\n</style>
 </head>
 <body>
 <div class="wrap" dir="rtl" id="pub">
@@ -631,4 +631,4 @@ try{if(!isAdmin())DB=clone(DATA0);else DB=loadDraft()||clone(DATA0);reindex();ro
 
 </script>
 </body>
-</html>
+  </html>
