@@ -130,7 +130,7 @@ form.f legend{font-size:15px;font-weight:500;padding-inline:6px}
 </nav>
 <section id="vTerms">
 <div class="bar">
-<div class="search"><input id="q" type="search" placeholder="ابحث بالعربي أو الإنجليزي أو في نص التعريف…" autocomplete="off" aria-label="بحث"><button class="iconbtn" id="theme" aria-label="تبديل الوضع">◐</button></div>
+<div class="search"><input id="q" type="search" enterkeyhint="search" placeholder="ابحث بالعربي أو الإنجليزي أو في نص التعريف…" autocomplete="off" aria-label="بحث"><button class="iconbtn" id="theme" aria-label="تبديل الوضع">◐</button></div>
 <div class="tools">
 <button class="chip" id="fTent" aria-pressed="false">التعريفات المبدئية فقط *</button>
 <span id="srcChips" style="display:contents"></span>
@@ -241,9 +241,9 @@ function setView(v){
   $('tabTerms').setAttribute('aria-selected',v==='terms');$('tabSources').setAttribute('aria-selected',v==='sources');
 }
 /* ---------- drawer ---------- */
-let lastFocus=null;
-function openDrawer(html){lastFocus=document.activeElement;$('drawer').innerHTML='<button class="x" id="close" aria-label="إغلاق" type="button">✕</button>'+html;$('layer').hidden=false;const f=$('drawer').querySelector('input,textarea');(f||$('close')).focus()}
-function closeDrawer(){$('layer').hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus()}
+let lastFocus=null,drawerHist=false,skipPop=false;
+function openDrawer(html){if($('layer').hidden)lastFocus=document.activeElement;$('drawer').innerHTML='<button class="x" id="close" aria-label="إغلاق" type="button">✕</button>'+html;$('layer').hidden=false;if(!drawerHist){drawerHist=true;try{history.pushState(null,'')}catch(e){drawerHist=false}}const f=$('drawer').querySelector('input,textarea');(f||$('close')).focus()}
+function closeDrawer(pop){$('layer').hidden=true;if(lastFocus&&lastFocus.focus&&document.contains(lastFocus))lastFocus.focus();if(drawerHist){drawerHist=false;if(!pop){skipPop=true;try{history.back()}catch(e){skipPop=false}}}}
 function refHtml(n){
   const r=REFS[n];if(!r)return '';const ts=TERMS.filter(t=>t.src.includes(+n));
   return '<h2 id="dt">المرجع ['+n+']</h2><div class="apa" dir="'+(r.ltr?'ltr':'rtl')+'">'+fmtApa(r.apa)+'</div>'+attList(n,r)
@@ -562,6 +562,7 @@ document.addEventListener('input',e=>{
   if(e.target.id==='q'){clearTimeout(window._tm);window._tm=setTimeout(()=>{state.q=e.target.value.trim();renderTerms()},120)}
   if(e.target.id==='aq'){aq=e.target.value;renderAList()}
 });
+try{$('q').addEventListener('search',()=>{try{if(matchMedia('(pointer:coarse)').matches)$('q').blur()}catch(_){}})}catch(_){}
 document.addEventListener('change',e=>{
   if(e.target.id==='l_file'){const fs=[...e.target.files];e.target.value='';addFiles(fs);return}
   if(e.target.id==='impf'){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.terms)||!d.refs)throw 0;DB={v:DATA0.v,ph:d.ph||DB.ph,showBtn:d.showBtn!==false,refs:d.refs,sites:d.sites||[],terms:d.terms};saveDraft();renderAdmin()}catch(_){alert0('الملف غير صالح. استخدم ملف نسخة احتياطية نزّلته من هنا.')}};r.readAsText(f)}
@@ -606,6 +607,7 @@ async function handleSubmit(form){
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('layer').hidden)closeDrawer();
+  if(e.key==='Enter'&&(e.target.id==='q'||e.target.id==='aq')){e.preventDefault();e.target.blur();return}
   if(e.key==='Enter'&&(e.target.id==='l_url'||e.target.id==='l_title')){e.preventDefault();addLink();return}
   if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='checkbox'&&e.target.type!=='file'){const f=e.target.closest('form');if(f&&f.id){e.preventDefault();handleSubmit(f)}}
 });
@@ -621,6 +623,7 @@ function applyRoute(h){
 function route(){applyRoute(location.hash.slice(1))}
 function nav(v){try{if(('#'+v)!==location.hash)history.pushState(null,'','#'+v)}catch(e){}applyRoute(v)}
 addEventListener('hashchange',()=>{try{route()}catch(e){showErr(e)}});
+addEventListener('popstate',()=>{try{if(skipPop){skipPop=false;return}if(drawerHist)closeDrawer(true)}catch(e){showErr(e)}});
 function showErr(e){const d=document.createElement('div');d.setAttribute('role','alert');d.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#b3261e;color:#fff;padding:10px 16px;z-index:99;font-size:14px;direction:ltr';d.textContent='Error: '+(e&&e.message||e);document.body.appendChild(d)}
 addEventListener('error',ev=>showErr(ev.error||ev.message));
 try{const _gt=store.get('gls-theme');if(_gt)document.documentElement.dataset.theme=_gt}catch(e){}
